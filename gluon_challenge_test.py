@@ -12,6 +12,7 @@ import mxnet.ndarray as F
 import logging
 import sys
 
+# ssh -A ubuntu@10.30.29.216
 py_new = True #  Checks for python version
 if sys.version[:1] == '2':
     py_new = False
@@ -383,6 +384,7 @@ def trainGluonRNN(epochs, train_data, seq=seq_length):
                 cur_L = total_L / seq_length / batch_size / log_interval
                 print('[Epoch %d Batch %d] loss %.2f' % (epoch + 1, ibatch, cur_L))
                 total_L = 0.0
+        print(epoch)
         model.save_params(rnn_save)
 
 print('the train data shape is', train_data_rnn_gluon.shape)
@@ -413,7 +415,7 @@ def mapInput(input_str, output_str):
         partial_output = output_str[i:i+1]
         print(partial_input + "->" + partial_output[0])
 
-test_input = 'probably the time is at hand when it will be once and again understood WHAT has actually sufficed an'
+test_input = 'I would like to transf'
 print(len(test_input))
 result = evaluate_seq2seq(model, test_input, seq_length, 1)
 mapInput(test_input, result)

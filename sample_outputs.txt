@@ -1,0 +1,56 @@
+--------------------------------------
+User input : I would like to ask
+Intent : i.fai.moneymovement
+--------------------------------------
+Model output with 300 characters and seq_length of 20 :
+--------------------------------------
+I would like to ask a transfer
+i want to pay my credit card.
+wire  $50 dollars to my dave
+send an e-transfer to Amanda reed
+transfer money from my main account
+transfer money to alan $50 dollars from my chequing account
+transfer money from my chequing account
+pay my mastercard 1.50 from my savings account from my chequ
+--------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------
+User input : Are you able to transfer 501$
+Intent : i.fai.moneymovement
+--------------------------------------
+Model output with 300 characters and seq_length of 30 :
+--------------------------------------
+Are you able to transfer 501$ from my chequing account
+please transfer
+pay mastercard 100
+send etransfer to lacey for 30
+e-pay from my chequing account to my steve
+send mitch 1234
+pay 100
+pay atb mastercard $700
+money transfer  from my main account to my dave
+can you make a payment on my mastercard
+E-transfer money from my check
+--------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------
+User input : dont transfer more money to
+Intent : i.fai.moneymovement
+--------------------------------------
+Model output with 300 characters and seq_length of 28 :
+--------------------------------------
+dont transfer more money to my savings account from chequing account to my steve
+Send Dianne 26
+move  to my steve 50 dollars
+transfer 50 dollars  from savings account
+payment for my credit card.
+wire  $50 dollars to my dad
+None of those my mastercard
+E-transfer $10 to ivana
+pay direct energy 100
+transfer money  to dave $400 bu
+--------------------------------------

@@ -151,17 +151,17 @@ if __name__== "__main__":
                         help='Name of the file to save the data to')
     parser.add_argument('model_name', type=str,
                         help='Name of the model to save')
-    parser.add_argument('intent', type=str,
-                        help='Intent to train the model on')
+    # parser.add_argument('intent', type=str,
+    #                     help='Intent to train the model on')
 
     args = parser.parse_args()
 
-    df = pd.read_pickle(args.input_data)
-    df_moneymovement = df.loc[df['intent'] == args.intent]
-    df_moneymovement = df_moneymovement.sample(frac=1.0)
-    utterances = df_moneymovement['utterance']
+    df_intent = pd.read_pickle(args.input_data)
+    # df_intent = df.loc[df['intent'] == args.intent]
+    df_intent = df_intent.sample(frac=1.0)
+    utterances = df_intent['utterance']
 
-    df_moneymovement.to_pickle(args.output_data)
+    df_intent.to_pickle(args.output_data)
 
     text = '\n'.join(utterances.values)
 
@@ -210,7 +210,7 @@ if __name__== "__main__":
     hididen_units = 1000
     number_layers = 2
     clip = 0.2
-    epochs = 10  # use 200 epochs for good result
+    epochs = 100  # use 200 epochs for good result
     batch_size = 32
     seq_length = 11  # sequence length
     dropout = 0.4

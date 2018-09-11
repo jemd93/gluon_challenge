@@ -54,3 +54,26 @@ E-transfer $10 to ivana
 pay direct energy 100
 transfer money  to dave $400 bu
 --------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------
+User input : pay my debt!
+Intent : i.fai.moneymovement
+--------------------------------------
+Model output with 300 characters and seq_length of 12 :
+--------------------------------------
+pay my debt! card
+i want to pay the city of lethbridge utilties
+send etransfer for $50 to steve from savings
+send an etransfer to susan
+14.06
+pay atb mc 400
+etransfer dianne
+transfer money from my main account
+send cash
+i need to pay as you go
+transfer money to my savings account to my savings
+move  $50 dollars
+--------------------------------------
+

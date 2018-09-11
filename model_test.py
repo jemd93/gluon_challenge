@@ -115,8 +115,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    df_moneymovement = pd.read_pickle(args.input_data)
-    utterances = df_moneymovement['utterance']
+    df_intent = pd.read_pickle(args.input_data)
+    utterances = df_intent['utterance']
 
     text = '\n'.join(utterances.values)
     print("--------------------------------------")
@@ -164,6 +164,7 @@ if __name__ == "__main__":
     seq_length = len(test_input)
 
     print("User input : " + test_input)
+    print("Intent : " + df_intent['intent'].unique()[0])
     print("--------------------------------------")
     print("Model output with 300 characters and seq_length of " + str(seq_length) + " : ")
     print("--------------------------------------")

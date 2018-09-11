@@ -12,6 +12,7 @@ import mxnet.ndarray as F
 import logging
 import sys
 
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/lib64
 # ssh -A ubuntu@10.30.29.216
 py_new = True #  Checks for python version
 if sys.version[:1] == '2':
@@ -31,41 +32,12 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
-def readAndStoreFile(url):
-    import os
-    try:
-        # For Python 3.0 and later
-        from urllib.request import urlopen
-    except ImportError:
-        # Fall back to Python 2's urllib2
-        from urllib2 import urlopen
-    if not os.path.isdir("data"):
-        response = urlopen(url)
-        #  There might be problem decoding the response
-        #  Please checkt he data folder and the file before trying the execrise
-        #  in windows operating system  'data = response.read()' is enough
-        data = response.read().decode('UTF-8')
-        os.mkdir("data")
-        with open("data/nietzsche.txt", "w+") as f:
-            f.write(data)
-            f.close()
-
-url = "https://s3.amazonaws.com/text-datasets/nietzsche.txt"
-readAndStoreFile(url)
-
-# loading https://s3.amazonaws.com/text-datasets/nietzsche.txt
-# You can load anyother text you want
-# (https://cs.stanford.edu/people/karpathy/char-rnn/)
-if py_new:
-    with open("data/nietzsche.txt", errors='ignore') as f:
-        text = f.read()
-else:
-    with open("data/nietzsche.txt") as f:
-        text = f.read()
-
 df = pd.read_pickle('./data_english.pickle')
 df_moneymovement = df.loc[df['intent'] == 'i.fai.moneymovement']
+df_moneymovement = df_moneymovement.sample(frac=1.0)
 utterances = df_moneymovement['utterance']
+
+df_moneymovement.to_pickle('./data.pickle')
 
 text = '\n'.join(utterances.values)
 
@@ -140,118 +112,6 @@ test_bat, test_target = get_batch(simple_train_data,
 print(test_bat.shape)
 print(test_target.shape)
 
-# simple UnRollredRNN_Model
-from mxnet.gluon import Block, nn
-from mxnet import ndarray as F
-
-
-class UnRolledRNN_Model(Block):
-    def __init__(self, vocab_size, num_embed, num_hidden, **kwargs):
-        super(UnRolledRNN_Model, self).__init__(**kwargs)
-        self.num_embed = num_embed
-        self.vocab_size = vocab_size
-
-        # use name_scope to give child Blocks appropriate names.
-        # It also allows sharing Parameters between Blocks recursively.
-        with self.name_scope():
-            self.encoder = nn.Embedding(self.vocab_size, self.num_embed)
-            self.dense1 = nn.Dense(num_hidden, activation='relu', flatten=True)
-            self.dense2 = nn.Dense(num_hidden, activation='relu', flatten=True)
-            self.dense3 = nn.Dense(vocab_size, flatten=True)
-
-    def forward(self, inputs):
-        emd = self.encoder(inputs)
-        # print( emd.shape )
-        # since the input is shape (batch_size, input(3 characters) )
-        # we need to extract 0th, 1st, 2nd character from each batch
-        character1 = emd[:, 0, :]
-        character2 = emd[:, 1, :]
-        character3 = emd[:, 2, :]
-        # green arrow in diagram for character 1
-        c1_hidden = self.dense1(character1)
-        # green arrow in diagram for character 2
-        c2_hidden = self.dense1(character2)
-        # green arrow in diagram for character 3
-        c3_hidden = self.dense1(character3)
-        # yellow arrow in diagram
-        c1_hidden_2 = self.dense2(c1_hidden)
-        addition_result = F.add(c2_hidden, c1_hidden_2)  # Total c1 + c2
-        addition_hidden = self.dense2(addition_result)  # the yellow arrow
-        addition_result_2 = F.add(addition_hidden, c3_hidden)  # Total c1 + c2
-        final_output = self.dense3(addition_result_2)
-        return final_output
-
-
-vocab_size = len(chars) + 1  # the vocabsize
-num_embed = 30
-num_hidden = 256
-# model creation
-simple_model = UnRolledRNN_Model(vocab_size, num_embed, num_hidden)
-# model initilisation
-simple_model.collect_params().initialize(mx.init.Xavier(), ctx=context)
-trainer = gluon.Trainer(simple_model.collect_params(), 'adam')
-loss = gluon.loss.SoftmaxCrossEntropyLoss()
-
-# check point file
-try:
-    os.makedirs('checkpoints')
-except:
-    print("directory already exists")
-filename_unrolled_rnn = "checkpoints/rnn_gluon_abc.params"
-
-
-# the actual training
-def UnRolledRNNtrain(train_data, label_data, batch_size=32, epochs=10):
-    epochs = epochs
-    smoothing_constant = .01
-    for e in range(epochs):
-        for ibatch, i in enumerate(range(0, train_data.shape[0] - 1, batch_size)):
-            data, target = get_batch(train_data, label_data, i, batch_size)
-            data = data.as_in_context(context)
-            target = target.as_in_context(context)
-            with autograd.record():
-                output = simple_model(data)
-                L = loss(output, target)
-            L.backward()
-            trainer.step(data.shape[0])
-
-            ##########################
-            #  Keep a moving average of the losses
-            ##########################
-            if ibatch == 128:
-                curr_loss = mx.nd.mean(L).asscalar()
-                moving_loss = 0
-                moving_loss = (curr_loss if ((i == 0) and (e == 0))
-                               else (1 - smoothing_constant) * moving_loss + (smoothing_constant) * curr_loss)
-                print("Epoch %s. Loss: %s, moving_loss %s" % (e, curr_loss, moving_loss))
-
-# simple_model.save_params(filename_unrolled_rnn)
-#
-# epochs = 10
-# UnRolledRNNtrain(simple_train_data, simple_label_data, batch_size, epochs)
-# # loading the model back
-# simple_model.load_params(filename_unrolled_rnn, ctx=context)
-
-# evaluating the model
-def evaluate(input_string):
-    idx = [char_indices[c] for c in input_string]
-    sample_input = mx.nd.array([[idx[0], idx[1], idx[2]]], ctx=context)
-    output = simple_model(sample_input)
-    index = mx.nd.argmax(output, axis=1)
-    return index.asnumpy()[0]
-
-# predictions
-# begin_char = 'mone'
-# answer = evaluate(begin_char)
-# print('the predicted answer is ', indices_char[answer])
-
-model = mx.gluon.rnn.SequentialRNNCell()
-with model.name_scope():
-    model.add(mx.gluon.rnn.LSTMCell(20))
-    model.add(mx.gluon.rnn.LSTMCell(20))
-states = model.begin_state(batch_size=32)
-inputs = mx.nd.random.uniform(shape=(5, 32, 10))
-
 # Class to create model objects.
 class GluonRNNModel(gluon.Block):
 
@@ -308,9 +168,9 @@ embedsize = 50
 hididen_units = 1000
 number_layers = 2
 clip = 0.2
-epochs = 200  # use 200 epochs for good result
+epochs = 10  # use 200 epochs for good result
 batch_size = 32
-seq_length = 100  # sequence length
+seq_length = 11  # sequence length
 dropout = 0.4
 log_interval = 64
 # checkpoints/gluonlstm_2 (prepared for seq_lenght 100, 200 epochs)
@@ -385,14 +245,14 @@ def trainGluonRNN(epochs, train_data, seq=seq_length):
                 print('[Epoch %d Batch %d] loss %.2f' % (epoch + 1, ibatch, cur_L))
                 total_L = 0.0
         print(epoch)
-        model.save_params(rnn_save)
+        model.save_params("./model_test_params")
 
 print('the train data shape is', train_data_rnn_gluon.shape)
 
 # The train data shape
-trainGluonRNN(10, train_data_rnn_gluon, seq=seq_length)
+trainGluonRNN(epochs, train_data_rnn_gluon, seq=seq_length)
 
-model.load_params(rnn_save, context)
+model.load_params("./model_test_params", context)
 
 
 # evaluates a seqtoseq model over input string
@@ -415,7 +275,7 @@ def mapInput(input_str, output_str):
         partial_output = output_str[i:i+1]
         print(partial_input + "->" + partial_output[0])
 
-test_input = 'I would like to transf'
+test_input = 'send $75 to'
 print(len(test_input))
 result = evaluate_seq2seq(model, test_input, seq_length, 1)
 mapInput(test_input, result)
@@ -432,7 +292,6 @@ def generate_random_text(model, input_string, seq_length, batch_size, sentence_l
     while count < sentence_length:
         idx = [char_indices[c] for c in input_string]
         if(len(input_string) != seq_length):
-            print(len(input_string))
             raise ValueError('there was a error in the input ')
         sample_input = mx.nd.array(np.array([idx[0:seq_length]]).T, ctx=context)
         output, hidden = model(sample_input, hidden)
@@ -444,5 +303,5 @@ def generate_random_text(model, input_string, seq_length, batch_size, sentence_l
     print(cp_input_string + new_string)
 
 generate_random_text(model,
-                        "probably the time is at hand when it will be once and again understood WHAT has actually sufficed an",
-                        seq_length, 1, 200)
+                        "send $75 to",
+                        seq_length, 1, 22)

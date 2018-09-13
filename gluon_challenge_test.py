@@ -151,18 +151,20 @@ if __name__== "__main__":
                         help='Name of the file to save the data to')
     parser.add_argument('model_name', type=str,
                         help='Name of the model to save')
-    # parser.add_argument('intent', type=str,
-    #                     help='Intent to train the model on')
+    parser.add_argument('intent', type=str,
+                        help='Intent to train the model on')
 
     args = parser.parse_args()
 
-    df_intent = pd.read_pickle(args.input_data)
-    # df_intent = df.loc[df['intent'] == args.intent]
+    # Select data for the specified intent
+    df = pd.read_pickle(args.input_data)
+    df_intent = df.loc[df['intent'] == args.intent]
     df_intent = df_intent.sample(frac=1.0)
     utterances = df_intent['utterance']
 
     df_intent.to_pickle(args.output_data)
 
+    # Transform the dataframe into a "document" with 1 utterance per line
     text = '\n'.join(utterances.values)
 
     print("--------------------------------------")
@@ -219,15 +221,15 @@ if __name__== "__main__":
     # GluonRNNModel
     model = GluonRNNModel(mode, vocab_size, embedsize, hididen_units,
                           number_layers, dropout)
-    # initalise the weights of models to random weights
+    # Initialize weights randomly
     model.collect_params().initialize(mx.init.Xavier(), ctx=context)
-    # Adam trainer
+    # Pick trainer/optimizer : Adam trainer
     trainer = gluon.Trainer(model.collect_params(), 'adam')
-    # softmax cros entropy loss
+    # Pick loss function : softmax cros entropy loss
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
     idx_nd = mx.nd.array(idx)
-    # convert the idex of characters
+    # convert the idex of characters to be ingested by the RNN
     train_data_rnn_gluon = rnn_batch(idx_nd, batch_size).as_in_context(context)
 
     print("And this is the input for the RNN : ")

@@ -173,6 +173,7 @@ if __name__== "__main__":
     print(text[0:300])
     print("--------------------------------------")
     print("Length of the input text : {}".format(len(text)))
+    print("Number of utterances used : {}".format(len(df_intent.index)))
 
     # total of characters in dataset
     chars = sorted(list(set(text)))
@@ -212,7 +213,7 @@ if __name__== "__main__":
     hididen_units = 1000
     number_layers = 2
     clip = 0.2
-    epochs = 100  # use 200 epochs for good result
+    epochs = 100
     batch_size = 32
     seq_length = 11  # sequence length
     dropout = 0.4

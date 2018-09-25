@@ -15,6 +15,7 @@ import argparse
 
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/lib64
 # ssh -A ubuntu@10.30.29.216
+
 py_new = True #  Checks for python version
 if sys.version[:1] == '2':
     py_new = False
@@ -114,7 +115,7 @@ def detach(hidden):
     return hidden
 
 
-def trainGluonRNN(epochs, train_data, seq):
+def trainGluonRNN(epochs, train_data, seq, clip, seq_length, batch_size):
     for epoch in range(epochs):
         total_L = 0.0
         hidden = model.begin_state(func=mx.nd.zeros, batch_size=batch_size, ctx=context)
@@ -138,7 +139,8 @@ def trainGluonRNN(epochs, train_data, seq):
                 cur_L = total_L / seq_length / batch_size / log_interval
                 print('[Epoch %d Batch %d] loss %.2f' % (epoch + 1, ibatch, cur_L))
                 total_L = 0.0
-        model.save_params(args.model_name)
+            print("Epoch : {} ".format(epoch))
+        model.save_params(os.path.join('./MODELS',args.model_name))
 
 
 if __name__== "__main__":
@@ -153,16 +155,37 @@ if __name__== "__main__":
                         help='Name of the model to save')
     parser.add_argument('intent', type=str,
                         help='Intent to train the model on')
+    parser.add_argument('--mode', type=str, default='lstm',
+                        help='Mode for the RNN to train on')
+    parser.add_argument('--embed-size', type=int, default=50,
+                        help='Size of embeddings')
+    parser.add_argument('--hidden-layers', type=int, default=2,
+                        help='Number of hidden layers')
+    parser.add_argument('--hidden-units', type=int, default=1000,
+                        help='Number of hidden units in hidden layer')
+    parser.add_argument('--clip', type=float, default=0.2,
+                        help='Clipping')
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='Number of epochs to train the model for')
+    parser.add_argument('--batch-size', type=int, default=32,
+                        help='Size of each training batch')
+    parser.add_argument('--seq-length', type=int, default=20,
+                        help='Sequence length (size of window of learning)')
+    parser.add_argument('--dropout', type=float, default=0.4,
+                        help='Dropout rate')
+    parser.add_argument('--optimizer', type=str, default='adam',
+                        help='Optimizer to use')
 
     args = parser.parse_args()
-
+    input_suffix = '.pickle'
+    output_suffix = '.pickle'
     # Select data for the specified intent
-    df = pd.read_pickle(args.input_data)
+    df = pd.read_pickle(os.path.join('./data', args.input_data + input_suffix))
     df_intent = df.loc[df['intent'] == args.intent]
-    df_intent = df_intent.sample(frac=1.0)
+    df_intent = df_intent.sample(n=200)
     utterances = df_intent['utterance']
 
-    df_intent.to_pickle(args.output_data)
+    df_intent.to_pickle(os.path.join('./data', args.output_data + output_suffix))
 
     # Transform the dataframe into a "document" with 1 utterance per line
     text = '\n'.join(utterances.values)
@@ -205,33 +228,23 @@ if __name__== "__main__":
     # testing the mapping
     ''.join(indices_char[i] for i in idx[:70])
 
-    # define the lstm
-    mode = 'lstm'
     # number of characters in vocab_size
     vocab_size = len(chars) + 1
-    embedsize = 50
-    hididen_units = 1000
-    number_layers = 2
-    clip = 0.2
-    epochs = 100
-    batch_size = 32
-    seq_length = 11  # sequence length
-    dropout = 0.4
     log_interval = 64
 
     # GluonRNNModel
-    model = GluonRNNModel(mode, vocab_size, embedsize, hididen_units,
-                          number_layers, dropout)
+    model = GluonRNNModel(args.mode, vocab_size, args.embed_size, args.hidden_units,
+                          args.hidden_layers, args.dropout)
     # Initialize weights randomly
     model.collect_params().initialize(mx.init.Xavier(), ctx=context)
     # Pick trainer/optimizer : Adam trainer
-    trainer = gluon.Trainer(model.collect_params(), 'adam')
+    trainer = gluon.Trainer(model.collect_params(), args.optimizer)
     # Pick loss function : softmax cros entropy loss
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
     idx_nd = mx.nd.array(idx)
     # convert the idex of characters to be ingested by the RNN
-    train_data_rnn_gluon = rnn_batch(idx_nd, batch_size).as_in_context(context)
+    train_data_rnn_gluon = rnn_batch(idx_nd, args.batch_size).as_in_context(context)
 
     print("And this is the input for the RNN : ")
     print("--------------------------------------")
@@ -240,4 +253,5 @@ if __name__== "__main__":
     print('The train data shape is : {}'.format(train_data_rnn_gluon.shape))
 
     # The train data shape
-    trainGluonRNN(epochs, train_data_rnn_gluon, seq=seq_length)
+    trainGluonRNN(args.epochs, train_data_rnn_gluon, seq=args.seq_length, clip=args.clip,
+                  seq_length=args.seq_length, batch_size=args.batch_size)

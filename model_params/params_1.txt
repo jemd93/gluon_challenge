@@ -1,0 +1,10 @@
+#mode lstm
+#embed-size 50
+#hidden-layers 2
+#hidden-units 1000
+#clip 0.2
+#epochs 100
+#batch-size 32
+#seq-length 20
+#dropout 0.4
+#optimizer adam

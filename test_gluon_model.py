@@ -112,10 +112,24 @@ if __name__ == "__main__":
                         help='Name of the model to load')
     parser.add_argument('input_string', type=str,
                         help='String to test the model with')
+    parser.add_argument('--mode', type=str, default='lstm',
+                        help='Mode for the RNN to train on')
+    parser.add_argument('--embed-size', type=int, default=50,
+                        help='Size of embeddings')
+    parser.add_argument('--hidden-layers', type=int, default=2,
+                        help='Number of hidden layers')
+    parser.add_argument('--hidden-units', type=int, default=1000,
+                        help='Number of hidden units in hidden layer')
+    parser.add_argument('--seq-length', type=int, default=20,
+                        help='Sequence length (size of window of learning)')
+    parser.add_argument('--dropout', type=float, default=0.4,
+                        help='Dropout rate')
+
 
     args = parser.parse_args()
 
-    df_intent = pd.read_pickle(args.input_data)
+    suffix = '.pickle'
+    df_intent = pd.read_pickle(os.path.join('./data', args.input_data + suffix))
     utterances = df_intent['utterance']
 
     text = '\n'.join(utterances.values)
@@ -150,15 +164,14 @@ if __name__ == "__main__":
     # number of characters in vocab_size
     vocab_size = len(chars) + 1
     embedsize = 50
-    hididen_units = 1000
+    hidden_units = 1000
     number_layers = 2
     dropout = 0.4
 
     # GluonRNNModel
-    model = GluonRNNModel(mode, vocab_size, embedsize, hididen_units,
-                          number_layers, dropout)
+    model = GluonRNNModel(mode, vocab_size, embedsize, hidden_units, number_layers, dropout)
 
-    model.load_params(args.model_name, context)
+    model.load_params(os.path.join('./MODELS', args.model_name), context)
 
     test_input = args.input_string
     seq_length = len(test_input)
@@ -166,7 +179,7 @@ if __name__ == "__main__":
     print("User input : " + test_input)
     print("Intent : " + df_intent['intent'].unique()[0])
     print("--------------------------------------")
-    print("Model output with 500 characters and seq_length of " + str(seq_length) + " : ")
+    print("Model output with 1000 characters and seq_length of " + str(seq_length) + " : ")
     print("--------------------------------------")
-    generate_random_text(model, test_input, seq_length, 1, 500)
+    generate_random_text(model, test_input, seq_length, 1, 1000)
     print("--------------------------------------")

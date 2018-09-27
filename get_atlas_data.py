@@ -39,15 +39,10 @@ DSN = {
 parser = argparse.ArgumentParser(description="Reads utterance data from DB to pd.dataframe and save it to pickle and csv",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-# parser.add_argument('customer', type=str,
-#                     help='Customer name as specified in AtlasDB customers table.',default='finn core')
-parser.add_argument('--model', type=str,
-                    help='Classifier model name as specified in AtlasDB.',default='indomain')
-parser.add_argument('--output_dir', type=str,
-                    help='Where train.csv and val.csv are saved',default = 'atlas_data')
+parser.add_argument('--output_file', type=str,
+                    help='Name of the output data file',default = 'atlas_data')
 parser.add_argument('--minimum_number', type=int, default=80,
                     help='Minimum number of unique utternaces in an intent')
-# parser.add_argument('--source', type=str, default='%%', help="Source of the utterances")
 
 
 # parse args from command line
@@ -164,7 +159,7 @@ if __name__ == '__main__':
                             data
                 """
 
-    data = tunnel.execute_query(query, vars = [args.model])
+    data = tunnel.execute_query(query)
 
     # Convert to pandas dataframe
     df = pd.DataFrame(data=data, columns=["id", "utterance", "language", "source", "customer_name",
@@ -189,12 +184,8 @@ if __name__ == '__main__':
             utterances_intent = utterances_intent_unique.loc[utterances_intent_unique.intent!=intent,:]
             utterances_intent_unique = utterances_intent
 
-    # save data into the data folder
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
-
-    utterances_intent.to_csv(os.path.join(args.output_dir,'data_english.csv'),index=False)
-    utterances_intent.to_pickle(os.path.join(args.output_dir, 'data_english.pickle'))
+    utterances_intent.to_csv(os.path.join('./data', args.output_file+'.csv'),index=False)
+    utterances_intent.to_pickle(os.path.join('./data', args.output_file+'.pickle'))
 
 
     tunnel.close()

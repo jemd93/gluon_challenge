@@ -12,6 +12,6 @@ HIDDEN_UNITS=$(sed -n 4p $PARAM_FILE | awk '{print $2}')
 SEQ_LENGTH=$(sed -n 8p $PARAM_FILE | awk '{print $2}')
 DROPOUT=$(sed -n 9p $PARAM_FILE | awk '{print $2}')
 
-python test_gluon_model.py $INPUT_DATA_FILE $MODEL_NAME "${INPUT_STRING:0:${#INPUT_STRING}-1}" \
+python ./model_scripts/test_gluon_model.py $INPUT_DATA_FILE $MODEL_NAME "${INPUT_STRING:0:${#INPUT_STRING}}" \
     --mode=$MODE --embed-size=$EMBED_SIZE --hidden-layers=$HIDDEN_LAYERS --hidden-units=$HIDDEN_UNITS \
     --seq-length=$SEQ_LENGTH --dropout=$DROPOUT

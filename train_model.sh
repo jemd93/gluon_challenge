@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PARAM_FILE=$1
+PARAM_FILE=./model_params/$1
 INPUT_DATA_FILE=$2
 OUTPUT_DATA_FILE=$3
 MODEL_NAME=$4
@@ -17,7 +17,7 @@ SEQ_LENGTH=$(sed -n 8p $PARAM_FILE | awk '{print $2}')
 DROPOUT=$(sed -n 9p $PARAM_FILE | awk '{print $2}')
 OPTIMIZER=$(sed -n 10p $PARAM_FILE | awk '{print $2}')
 
-python train_gluon_model.py $INPUT_DATA_FILE $OUTPUT_DATA_FILE $MODEL_NAME $INTENT \
+python ./model_scripts/train_gluon_model.py $INPUT_DATA_FILE $OUTPUT_DATA_FILE $MODEL_NAME $INTENT \
     --mode=$MODE --embed-size=$EMBED_SIZE --hidden-layers=$HIDDEN_LAYERS --hidden-units=$HIDDEN_UNITS \
     --clip=$CLIP --epochs=$EPOCHS --batch-size=$BATCH_SIZE --seq-length=$SEQ_LENGTH \
     --dropout=$DROPOUT --optimizer=$OPTIMIZER

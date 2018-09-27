@@ -180,8 +180,8 @@ if __name__== "__main__":
     output_suffix = '.pickle'
     # Select data for the specified intent
     df = pd.read_pickle(os.path.join('./data', args.input_data + input_suffix))
-    df_intent = df.loc[df['intent'] == args.intent]
-    df_intent = df_intent.sample(n=200)
+    # df_intent = df.loc[df['intent'] == args.intent]
+    df_intent = df
     utterances = df_intent['utterance']
 
     df_intent.to_pickle(os.path.join('./data', args.output_data + output_suffix))

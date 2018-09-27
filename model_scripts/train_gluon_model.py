@@ -135,7 +135,7 @@ def trainGluonRNN(epochs, train_data, seq, clip, seq_length, batch_size):
             trainer.step(batch_size)
             total_L += mx.nd.sum(L).asscalar()
 
-            if ibatch % log_interval == 0 and ibatch > 0:
+            if ibatch == log_interval == 0 and ibatch > 0:
                 cur_L = total_L / seq_length / batch_size / log_interval
                 print('[Epoch %d Batch %d] loss %.2f' % (epoch + 1, ibatch, cur_L))
                 total_L = 0.0
@@ -229,7 +229,7 @@ if __name__== "__main__":
 
     # number of characters in vocab_size
     vocab_size = len(chars) + 1
-    log_interval = args.batch_size - 1
+    log_interval = args.batch_size
 
     # GluonRNNModel
     model = GluonRNNModel(args.mode, vocab_size, args.embed_size, args.hidden_units,

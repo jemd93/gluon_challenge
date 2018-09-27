@@ -139,7 +139,6 @@ def trainGluonRNN(epochs, train_data, seq, clip, seq_length, batch_size):
                 cur_L = total_L / seq_length / batch_size / log_interval
                 print('[Epoch %d Batch %d] loss %.2f' % (epoch + 1, ibatch, cur_L))
                 total_L = 0.0
-            print("Epoch : {} ".format(epoch))
         model.save_params(os.path.join('./MODELS',args.model_name))
 
 
@@ -230,7 +229,7 @@ if __name__== "__main__":
 
     # number of characters in vocab_size
     vocab_size = len(chars) + 1
-    log_interval = 64
+    log_interval = 5
 
     # GluonRNNModel
     model = GluonRNNModel(args.mode, vocab_size, args.embed_size, args.hidden_units,

@@ -229,7 +229,7 @@ if __name__== "__main__":
 
     # number of characters in vocab_size
     vocab_size = len(chars) + 1
-    log_interval = args.batch_size
+    log_interval = args.batch_size - 1
 
     # GluonRNNModel
     model = GluonRNNModel(args.mode, vocab_size, args.embed_size, args.hidden_units,
